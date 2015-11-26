@@ -1,10 +1,12 @@
-SNCLua = require ("SNCLua")
+SNCLua = require ("SNCLua/SNCLua")
 
-region:new{ id= "reg1", width = "100%", height = "100%"}
+head:new {
+		region:new{ id= "reg1", width = "100%", height = "100%"},
 
-descriptor:new{ id ="desc1", region = "reg1"} 
+		descriptor:new{ id ="desc1", region = "reg1"},
 
-connector:new{ documentURI= "ConnectorBase.ncl", alias= "con"}
+		importConnector:new{ documentURI= "ConnectorBase.ncl", alias= "con"}
+}
 
 media:new{ id ="img1", property = {name="explicitDur", value= "3s"}, src = "medias/img1.jpg", descriptor="desc1" }
 media:new{ id ="img2", property = {name="explicitDur", value= "3s"}, src = "medias/img2.jpg", descriptor="desc1" }
