@@ -1,4 +1,4 @@
-SNCLua = require ("SNCLua/SNCLua")
+SNCLua = require("SNCLua/SNCLua")
 
 head:new {
 		region:new{ id= "reg1", width = "100%", height = "100%"},
