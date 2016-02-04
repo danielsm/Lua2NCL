@@ -1,7 +1,8 @@
 local SNCLua = {}
 
 local ids = {} -- tabela para armazenar todos os ids
-local headElem = nil  -- contem as tabelas que referem aos elementos contidos no head do NCL
+local headElem = {}  -- contem as tabelas que referem aos elementos contidos no head do NCL
+local regions = {}
 local body = {} -- contem as tabelas que referem aos elementos contidos no body do NCL. media, port..
 local links = {} --  contem as tabelas apenas dos links
 
@@ -16,16 +17,16 @@ function head:new(o)
 	o = o or {}
 	setmetatable(o,self)
 	self.__index = self
-	headElem = o
-	--if (o:analyse()) then
+	--headElem = o
+	if (o:analyse()) then
 		return o
-	--end
+	end
 end
 
 -- o head nao contem nenhum elemento obrigatorio, mas se existir algum elemento declarado nele
 -- entao verifica-se se este elemento esta declarado corretamente.
 function head:analyse()
-	print("Analysing head...")
+	--print("Analysing head...")
 	if (#self > 0) then
 		-- itera sobre os elementos declarodos em head
 		for i,elem in pairs(self) do
@@ -44,13 +45,14 @@ function head:analyse()
 			end
 			-- se count eh falso, significa que o elemento nao pertence a head
 			if (count == false) then
-				print("Erro na definição do elemento head: O tipo ".. elem.getType().. " não é permitido.")
+				print("Erro na definição do elemento HEAD: O tipo ".. elem.getType().. " não é permitido.")
 				return false
 			end
 			--print(count)
 		end
 	end
-	print("head....OK")
+	table.insert(headElem,self)
+	--print("head....OK")
 	return true
 end
 
@@ -81,10 +83,9 @@ function region:new(o)
 	o = o or {}
 	setmetatable(o,self)
 	self.__index = self
-	--table.insert(headElem, o)
-	--if (o:analyse()) then
+	if (o:analyse()) then
 		return o
-	--end
+	end
 end
 
 function region:getType()
@@ -93,7 +94,7 @@ end
 
 -- region precisa ter pelo menos o id, os outros atributos sao opcionais
 function region:analyse()
-	print("Analysing region...")
+	--print("Analysing region...")
 	if (self.id ~= "") then
 		
 		-- itera sobre os elementos definidos na regiao
@@ -122,16 +123,15 @@ function region:analyse()
 			table.insert(ids,self.id)
 		elseif (#ids > 0) then
 			for i=1,#ids do
-				if (self.id ~= ids[i]) then
-					table.insert(ids,self.id)
-				else
+				if (self.id == ids[i]) then
 					print("Erro na definição do elemento region: O valor do id ".. self.id .." ja existe")
 					return false
 				end
 			end
+			table.insert(ids,self.id)
 		end
-
-		print("region....OK")
+		table.insert(headElem,self)
+		--print("region....OK")
 		return true
 	else
 		print("Erro na definição do elemento region: id não definido")
@@ -141,14 +141,14 @@ end
 
 -- imprime a estrutura ncl de uma region
 function region:print()
-	if (self:analyse()) then
+	
 		local str = "<region "
 		for attr,value in pairs(self) do
 			str = str .. attr .. "=\"" .. value .. "\"" .. " "
 		end
 		str = str .. "/>\n"
 		return (str)
-	end
+	
 end
 --++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -177,8 +177,9 @@ function descriptor:new(o)
 	o = o or {}
 	setmetatable(o,self)
 	self.__index = self
-	--table.insert(headElem, o)
-	return o
+	if (o:analyse()) then
+		return o
+	end
 end
 
 function descriptor:getType()
@@ -186,12 +187,12 @@ function descriptor:getType()
 end
 
 function descriptor:analyse()
-	print("Analysing descriptor...")
+	--print("Analysing descriptor...")
 	if (self.id ~= "") then
 		-- itera sobre os elementos definidos no descriptor
 		for attr,value in pairs(self) do
 			count = false
-			--print(attr, value)
+
 			-- itera sobre o modelo de descriptor
 			for k,v in pairs(descriptor) do
 				-- testa apenas com as tabelas (atributos) do modelo
@@ -214,17 +215,35 @@ function descriptor:analyse()
 			table.insert(ids,self.id)
 		elseif (#ids > 0) then
 			for i=1,#ids do
-				if (self.id ~= ids[i]) then
-					table.insert(ids,self.id)
-				else
+				if (self.id == ids[i]) then
 					print("Erro na definição do elemento descriptor: O valor do id ".. self.id .." ja existe")
 					return false
 				end
 			end
+			table.insert(ids,self.id)
 		end
 
-		print("descriptor....OK")
+		-- verifica se o region apontado existe
+		auxFlag = false
+		if (self.region ~= "") then
+			for k,elem in pairs(headElem) do
+				if (elem:getType() == "region") then
+					if (self.region == elem.id) then
+						auxFlag = true
+					end
+				end
+			end
+
+			if (auxFlag == false) then
+				print("Erro na definição do elemento descriptor: o region referenciado não está definido")
+				return false
+			end
+		end
+
+		table.insert(headElem, self)
+		--print("descriptor....OK")
 		return true
+		
 	else
 		print("Erro na definição do elemento descriptor: id não definido")
 		return false
@@ -250,8 +269,9 @@ function importConnector:new (o)
 	o = o or {}
 	setmetatable(o, self)
 	self.__index = self
-	--table.insert(headElem, o)
-	return o
+	if (o:analyse()) then
+		return o
+	end
 end
 
 function importConnector:getType()
@@ -259,7 +279,7 @@ function importConnector:getType()
 end
 
 function importConnector:analyse()
-	print("Analysing importConnector...")
+	--print("Analysing importConnector...")
 	if (self.documentURI ~= "") then
 		if (self.alias ~= "") then
 			-- itera sobre os elementos definidos no descriptor
@@ -282,22 +302,8 @@ function importConnector:analyse()
 				end
 			end
 
-			-- verificar se o id definido ja existe
-			--print(#ids)
-			if (#ids == 0) then
-				table.insert(ids,self.id)
-			elseif (#ids > 0) then
-				for i=1,#ids do
-					if (self.id ~= ids[i]) then
-						table.insert(ids,self.id)
-					else
-						print("Erro na definição do elemento descriptor: O valor do ali: ".. self.id .." ja existe")
-						return false
-					end
-				end
-			end
-
-			print("importConnector....OK")
+			table.insert(headElem,self)
+			--print("importConnector....OK")
 			return true
 		else
 			print("Erro na definição do elemento importConnector: alias não definido")
@@ -332,6 +338,10 @@ function property:getType()
 	return "property"
 end
 
+function property:analyse()
+	return true
+end
+
 function property:print()
 	-- body
 end
@@ -352,71 +362,98 @@ function media:new (o)
 	o = o or {}
 	setmetatable(o, self)
 	self.__index = self
-	table.insert(body, o)
-	return o
+	if (o:analyse()) then
+		return o
+	end
 end
 
 function media:getType()
 	return "media"
 end
 
--- analise sintatica da tabela media. Verifica se os atributos estao corretos.
+-- validacao sintatica da tabela media. Verifica se os atributos estao corretos.
 function media:analyse()
-	
-	
-	--media deve possuir id e src e descriptor
-	if(type(self.id) ~= "string" or self.id == "") then 
+	--print("Analysing MEDIA..")
+	-- verifica se existe id definido
+	if (self.id ~= "") then
+		--verifica se o id ja existe no documento
+		if (#ids == 0) then
+			table.insert(ids,self.id)
+		elseif (#ids > 0) then
+			for i=1,#ids do
+				if (self.id == ids[i]) then
+					print("Erro na definição do elemento MEDIA: O valor do id ".. self.id .." ja existe")
+					return false
+				end
+			end
+			table.insert(ids,self.id)
+		end
 
-		print("Erro na definição do atributo \"id\" no elemento media")
-		return false
+		-- verifica se ha src ou type, se nao houver apenas imprime sugestao
+		if (self.src == "" and self.type == "") then
+			print("Erro na definição do elemento MEDIA: O elemento deve possuir os atributos src ou type")
+			return false
+		end
 
-	elseif(type(self.src) ~= "string" or self.src == "") then
-
-		print("Erro na definição do atributo \"src\" no elemento media")
-		return false
-
-	elseif(type(self.descriptor) ~= "string" or self.descriptor == "") then
-
-		print("Erro na definição do atributo \"descriptor\" no elemento media")
+		-- verifica se o descriptor apontado existe
+		auxFlag = false
+		if (self.descriptor ~= "") then
+			for k,elem in pairs(headElem) do
+				if (elem:getType() == "descriptor") then
+					if (self.descriptor == elem.id) then
+						auxFlag = true
+					end
+				end
+			end
+			
+			if (auxFlag == false) then
+				print("Erro na definição do elemento MEDIA: o descriptor referenciado não está definido")
+				return false
+			end
+		end
+		
+		--print("MEDIA OK")
+		table.insert(body, self)
+		return true
+	else
+		print("Erro na definição do elemento MEDIA: id não definido")
 		return false
 	end
-	return true
 
 end
 
 -- imprime a estrutura ncl da media
 function media:print()	
 
-	if (self:analyse()) then
-		local flag = false
-		local attrName, attrExtra = {},{}
-		local str = "<media "
-		for attr,value in pairs(self) do
-			if (type(value) == "string") then
-				str = str .. attr:lower() .. "=\"" .. value .. "\"" .. " "
-			else
-				if (attr == "property" or attr == "area") then
-					flag = true
-					table.insert(attrName,attr)
-					table.insert(attrExtra,value)
-				end
+	local flag = false
+	local attrName, attrExtra = {},{}
+	local str = "<media "
+	for attr,value in pairs(self) do
+		if (type(value) == "string") then
+			str = str .. attr:lower() .. "=\"" .. value .. "\"" .. " "
+		else
+			if (attr == "property" or attr == "area") then
+				flag = true
+				table.insert(attrName,attr)
+				table.insert(attrExtra,value)
 			end
 		end
-		if (#attrName > 0) then
-			str = str .. ">\n"
-			for i=1,(#attrName),1 do
-				str = str .. "\t\t\t<"..attrName[i].." "
-				for n,v in pairs(attrExtra[i]) do
-					str = str..n.."=\""..v.. "\"" .. " "
-				end
-				str = str .. "/>\n"
+	end
+	if (#attrName > 0) then
+		str = str .. ">\n"
+		for i=1,(#attrName),1 do
+			str = str .. "\t\t\t<"..attrName[i].." "
+			for n,v in pairs(attrExtra[i]) do
+				str = str..n.."=\""..v.. "\"" .. " "
 			end
-			str = str .."\t\t</media>\n"
-		else
 			str = str .. "/>\n"
 		end
-		return (str)
+		str = str .."\t\t</media>\n"
+	else
+		str = str .. "/>\n"
 	end
+	return (str)
+	
 end
 
 
@@ -432,12 +469,58 @@ function port:new (o)
 	o = o or {}
 	setmetatable(o, self)
 	self.__index = self
-	table.insert(body, o)
-	return o
+	if (o:analyse()) then
+		return o
+	end
 end
 
 function port:getType()
 	return "port"
+end
+
+function port:analyse()
+	-- body
+	if (self.id ~= "") then
+		--verifica se o id ja existe no documento
+		if (#ids == 0) then
+			table.insert(ids,self.id)
+		elseif (#ids > 0) then
+			for i=1,#ids do
+				if (self.id == ids[i]) then
+					print("Erro na definição do elemento PORT: O valor do id ".. self.id .." ja existe")
+					return false
+				end
+			end
+			table.insert(ids,self.id)
+		end
+
+		-- verifica se o component apontado existe e se he valido
+		auxFlag = false
+		if (self.component ~= "") then
+			for k,elem in pairs(body) do
+				if (elem:getType() == "media" or elem:getType() == "context" ) then
+					if (self.component == elem.id) then
+						auxFlag = true
+					end
+				end
+			end
+			
+			if (auxFlag == false) then
+				print("Erro na definição do elemento PORT: o component referenciado não está definido")
+				return false
+			end
+		else
+			print("Erro na definição do elemento PORT: component não definido")
+			return false
+		end
+
+		table.insert(body,self)
+		return true
+
+	else
+		print("Erro na definição do elemento PORT: id não definido")
+		return false
+	end
 end
 
 -- imprime a estrutura ncl do port
@@ -616,50 +699,88 @@ end
 
 function writeRegion()
 	-- body
+	local aux = false
+	for i,t in pairs(headElem) do
+		if t:getType() == "region" then 
+			aux = true
+		end
+	end
 
-		io.write("\t\t<regionBase>\n")
+	if (aux) then
+		local text = ""
+		text = text.."\t\t<regionBase>\n"
 		for i,t in pairs(headElem) do
 			if t:getType() == "region" then 
 				string = t:print() 
-				io.write("\t\t\t"..string)
+				text = text.."\t\t\t"..string
 			end
 		end
-		io.write("\t\t</regionBase>\n\n")
+		text = text.."\t\t</regionBase>\n\n"
+		return text
+	else
+		return ""
+	end
 end
 
 function writeDescriptor()
 	-- body
-		io.write("\t\t<descriptorBase>\n")
+	local aux = false
+	for i,t in pairs(headElem) do
+		if t:getType() == "descriptor" then 
+			aux = true
+		end
+	end
+
+	if (aux) then
+		local text = ""
+		text = text.."\t\t<descriptorBase>\n"
 		for i,t in pairs(headElem) do
 			if t:getType() == "descriptor" then  
 				string = t:print() 
-				io.write("\t\t\t"..string)
+				text = text.."\t\t\t"..string
 			end
 		end
-		io.write("\t\t</descriptorBase>\n\n")
-
+		text = text.."\t\t</descriptorBase>\n\n"
+		return text
+	else
+		return ""
+	end
 end
 
 function writeConnector()
 	-- body
-		io.write("\t\t<connectorBase>\n")
+	local aux = false
+	for i,t in pairs(headElem) do
+		if t:getType() == "importConnector" then 
+			aux = true
+		end
+	end
+
+	if (aux) then
+		local text = ""
+		text = text.."\t\t<connectorBase>\n"
 		for i,t in pairs(headElem) do
 			if t:getType() == "importConnector" then  
 				string = t:print() 
-				io.write("\t\t\t"..string)
+				text = text.."\t\t\t"..string
 			end
 		end
-		io.write("\t\t</connectorBase>\n\n")
-
+		text = text.."\t\t</connectorBase>\n\n"
+		return text
+	else
+		return ""
+	end
 end
 
 
 function writeLinks( )
 	-- body
+	local text = ""
 	for i,t in pairs(links) do
 		string = t:print()
-		io.write("\t\t"..string.."\n")
+		text = text.."\t\t"..string.."\n"
 	end
+	return text
 end
 
 
@@ -667,59 +788,50 @@ end
 function SNCLua:Translate()
 
 	--criar o arquivo .ncl com o mesmo nome do documento lua
-	print("Parsing document ".. arg[0] .." to NCL\n\n")
+	print("\nParsing document ".. arg[0] .." to NCL\n\n")
+	print("NUMERO DE IDS", #ids)
+
+
+
 	local name = arg[0]
 	name = string.sub(name,1,(string.find(name,".lua")-1))
 	local f=io.open(name..".ncl","w")
 	io.output(f)
 
 	-- texto para ser escrito no documento .ncl
-	local fulltext = ""
+	local fulltext = "Generated by SNCLua v.1.0\n"
 	fulltext = fulltext .. "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<ncl id=\"".. name 
-	.."\" xmlns=\"http://www.ncl.org.br/NCL3.0/EDTVProfile\">\n\t"
+	.."\" xmlns=\"http://www.ncl.org.br/NCL3.0/EDTVProfile\">\n"
 	
-	-- verificar e imprimir elementos 
-	if (headElem ~= nil) then
-		if (headElem:analyse()) then
-			for i,elem in pairs(headElem) do
-				print(i,elem:getType())
-				-- if (elem:analyse()) then
-				-- 	print(elem,"AQUIII")
-				-- end	
-			end
-		end
+
+	
+
+	--  imprimir elementos 
+	if (#headElem > 0) then
+		fulltext = fulltext .."\t<head>\n"
+		fulltext = fulltext..writeRegion()
+		fulltext = fulltext..writeDescriptor()
+		fulltext = fulltext..writeConnector()
+		fulltext = fulltext .."\t</head>\n"
 	end
-	-- if #headElem > 0 then
-	-- 	io.write("\t<head>\n")
-	-- 	for k,v in pairs(headElem) do
-	-- 		if (v:getType() == "head") then
-	-- 			if (v:analyse()) then
-	-- 				writeRegion()
-	-- 				writeDescriptor()
-	-- 				writeConnector()
-	-- 			end
-	-- 		end
-	-- 	end
-	-- 	-- writeRegion()
-	-- 	-- writeDescriptor()
-	-- 	-- writeConnector()
-	-- 	io.write("\t</head>\n")
-	-- end
-
 	
 
-	-- io.write("\t<body>\n")
+	fulltext = fulltext .."\t<body>\n"
 
 	-- -- imprime os elementos do body: media, port
-	-- for i=1,#body,1 do	
-	-- 	io.write("\t\t"..body[i]:print().."\n")
-	-- 	--body[i]:analyse()
+	-- if (#body > 0) then
+	-- 	for i=1,#body,1 do
+	-- 		if (body[i]:analyse()) then
+	-- 			fulltext = fulltext.."\t\t"..body[i]:print().."\n"
+	-- 		end
+	-- 	end
 	-- end
 
-	-- writeLinks()
+	--fulltext = fulltext ..writeLinks()
 
-	-- io.write("\t</body>\n")
-	io.write("</ncl>")
+	fulltext = fulltext .."\t</body>\n"
+	fulltext = fulltext .."</ncl>"
+	io.write(fulltext)
 	io.close(f)
 	print("**** DONE!! ****\n\n")
 	print("Generated NCL file is:", name..".ncl")

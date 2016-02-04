@@ -29,4 +29,3 @@ link:new{ when = { ["selection"] = {"img3", keyCode="CURSOR_LEFT"} }, ["do"] = {
 
 
 SNCLua:Translate()
-
