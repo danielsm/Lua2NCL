@@ -19,13 +19,13 @@ media:new{ id ="img3", src = "medias/img3.png", descriptor="desc1" }
 
 port:new{ id = "p1", component = "img1"}
 
-link:new{ when = { ["selection"] = {"img1", keyCode="CURSOR_RIGHT"} }, ["do"] = {stop = {"img1"}, start = {"img2"}} }
-link:new{ when = { ["selection"] = {"img2", keyCode="CURSOR_RIGHT"} }, ["do"] = {stop = {"img2"}, start = {"img3"}} }
-link:new{ when = { ["selection"] = {"img3", keyCode="CURSOR_RIGHT"} }, ["do"] = {stop = {"img3"}, start = {"img1"}} }
+link:new{ when = { selection = {"img1", keyCode="CURSOR_RIGHT"} }, ["do"] = {stop = {"img1"}, start = {"img2"}} }
+link:new{ when = { selection = {"img2", keyCode="CURSOR_RIGHT"} }, ["do"] = {stop = {"img2"}, start = {"img3"}} }
+link:new{ when = { selection = {"img3", keyCode="CURSOR_RIGHT"} }, ["do"] = {stop = {"img3"}, start = {"img1"}} }
 
-link:new{ when = { ["selection"] = {"img1", keyCode="CURSOR_LEFT"} }, ["do"] = {stop = {"img1"}, start = {"img3"}} }
-link:new{ when = { ["selection"] = {"img2", keyCode="CURSOR_LEFT"} }, ["do"] = {stop = {"img2"}, start = {"img1"}} }
-link:new{ when = { ["selection"] = {"img3", keyCode="CURSOR_LEFT"} }, ["do"] = {stop = {"img3"}, start = {"img2"}} }
+link:new{ when = { selection = {"img1", keyCode="CURSOR_LEFT"} }, ["do"] = {stop = {"img1"}, start = {"img3"}} }
+link:new{ when = { selection = {"img2", keyCode="CURSOR_LEFT"} }, ["do"] = {stop = {"img2"}, start = {"img1"}} }
+link:new{ when = { selection = {"img3", keyCode="CURSOR_LEFT"} }, ["do"] = {stop = {"img3"}, start = {"img2"}} }
 
 
 SNCLua:Translate()
