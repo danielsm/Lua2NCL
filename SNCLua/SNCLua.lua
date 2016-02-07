@@ -2,7 +2,6 @@ local SNCLua = {}
 
 local ids = {} -- tabela para armazenar todos os ids
 local headElem = {}  -- contem as tabelas que referem aos elementos contidos no head do NCL
-local regions = {}
 local body = {} -- contem as tabelas que referem aos elementos contidos no body do NCL. media, port..
 local links = {} --  contem as tabelas apenas dos links
 
@@ -331,7 +330,9 @@ function property:new(o)
 	o = o or {}
 	setmetatable(o, self)
 	self.__index = self
-	return o
+	if (o:analyse()) then
+		return o
+	end
 end
 
 function property:getType()
@@ -339,14 +340,75 @@ function property:getType()
 end
 
 function property:analyse()
-	return true
-end
+	
+	if (self.name ~= "") then
+		return true
+	else
+		return false
+	end	
+end	
 
 function property:print()
 	-- body
 end
 
+--+++++++++++++++++++++++++++++++++++++++++++++++++++
+-- Definicao do elemento area // AREA CLASS
+
+area = {	id="",
+			begin="",
+			['end']="",
+			first="",
+			last="",
+			beginText="",
+			endText="",
+			beginPosition="",
+			endPosition="",
+			coords="",
+			label="",
+			clip=""
+		}
+
+function area:new(o)
+	o = o or {}
+	setmetatable(o, self)
+	self.__index = self
+	if (o:analyse()) then
+		return o
+	end
+end
+
+function area:getType()
+	return "area"
+end
+
+function area:analyse()
+	
+	if (self.id ~= "") then
+		if (#ids == 0) then
+			table.insert(ids,self.id)
+		elseif (#ids > 0) then
+			for i=1,#ids do
+				if (self.id == ids[i]) then
+					print("Erro na definição do elemento MEDIA: O valor do id ".. self.id .." ja existe")
+					return false
+				end
+			end
+			table.insert(ids,self.id)
+		end
+		return true
+	else
+		return false
+	end	
+end	
+
+function area:print()
+	-- body
+end
+
 --+++++++++++++++++++++++++++++++++++++++++++++++
+
+
 -- Definicao do elemento media // MEDIA CLASS
 media = {	id = "",
 			src = "", 
@@ -373,6 +435,7 @@ end
 
 -- validacao sintatica da tabela media. Verifica se os atributos estao corretos.
 function media:analyse()
+
 	--print("Analysing MEDIA..")
 	-- verifica se existe id definido
 	if (self.id ~= "") then
@@ -428,17 +491,19 @@ function media:print()
 	local flag = false
 	local attrName, attrExtra = {},{}
 	local str = "<media "
+
 	for attr,value in pairs(self) do
 		if (type(value) == "string") then
 			str = str .. attr:lower() .. "=\"" .. value .. "\"" .. " "
 		else
-			if (attr == "property" or attr == "area") then
+			if (value:getType() == "property" or value:getType() == "area") then
 				flag = true
-				table.insert(attrName,attr)
+				table.insert(attrName,value:getType())
 				table.insert(attrExtra,value)
 			end
 		end
 	end
+	
 	if (#attrName > 0) then
 		str = str .. ">\n"
 		for i=1,(#attrName),1 do
