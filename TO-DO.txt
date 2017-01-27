@@ -1,0 +1,6 @@
+- Tags para implementar:
+
+
+
+
+- Retirar "new": (Deixar documento mais limpo)
