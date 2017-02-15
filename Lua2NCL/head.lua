@@ -2,7 +2,8 @@
 -- definicao do elemento head // HEAD CLASS
 local head = {	region = {},
 			descriptor = {},
-			connectorBase = {}
+			connectorBase = {},
+			rule = {}
 		}	
 
 function head:new(o)
