@@ -3,7 +3,8 @@
 local head = {	region = {},
 			descriptor = {},
 			connectorBase = {},
-			rule = {}
+			rule = {},
+			transition = {}
 		}	
 
 function head:new(o)

@@ -7,6 +7,8 @@ media = require ("Lua2NCL/media")
 port = require ("Lua2NCL/port")
 property  = require ("Lua2NCL/property")
 region = require ("Lua2NCL/region")
+rule = require ("Lua2NCL/rule")
+transition = require ("Lua2NCL/transition")
 
 local Lua2NCL = {}
 
@@ -21,6 +23,31 @@ function firstToUpper(str)
     return (str:gsub("^%l", string.upper))
 end
 
+
+function writeRule()
+	-- body
+	local aux = false
+	for i,t in pairs(headElem) do
+		if t:getType() == "rule" then 
+			aux = true
+		end
+	end
+
+	if (aux) then
+		local text = ""
+		text = text.."\t\t<ruleBase>\n"
+		for i,t in pairs(headElem) do
+			if t:getType() == "rule" then 
+				string = t:print() 
+				text = text.."\t\t\t"..string
+			end
+		end
+		text = text.."\t\t</ruleBase>\n\n"
+		return text
+	else
+		return ""
+	end
+end
 
 function writeRegion()
 	-- body
@@ -41,6 +68,31 @@ function writeRegion()
 			end
 		end
 		text = text.."\t\t</regionBase>\n\n"
+		return text
+	else
+		return ""
+	end
+end
+
+function writeTransition()
+	-- body
+	local aux = false
+	for i,t in pairs(headElem) do
+		if t:getType() == "transition" then 
+			aux = true
+		end
+	end
+
+	if (aux) then
+		local text = ""
+		text = text.."\t\t<transitionBase>\n"
+		for i,t in pairs(headElem) do
+			if t:getType() == "transition" then  
+				string = t:print() 
+				text = text.."\t\t\t"..string
+			end
+		end
+		text = text.."\t\t</transitionBase>\n\n"
 		return text
 	else
 		return ""
@@ -130,6 +182,8 @@ function Lua2NCL:Translate()
 	--  imprimir elementos 
 	if (#headElem > 0) then
 		fulltext = fulltext .."\t<head>\n"
+		fulltext = fulltext..writeRule()
+		fulltext = fulltext..writeTransition()
 		fulltext = fulltext..writeRegion()
 		fulltext = fulltext..writeDescriptor()
 		fulltext = fulltext..writeConnector()
