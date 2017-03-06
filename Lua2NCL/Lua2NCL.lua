@@ -1,4 +1,4 @@
-head  = require ("Lua2NCL/head")
+--head  = require ("Lua2NCL/head")
 connectorBase = require ("Lua2NCL/connectorBase")
 descriptor  = require ("Lua2NCL/descriptor")
 area = require ("Lua2NCL/area")
@@ -13,6 +13,9 @@ transition = require ("Lua2NCL/transition")
 local Lua2NCL = {}
 
 ids = {} -- tabela para armazenar todos os ids
+
+head = {	region = {}, descriptor = {}, connectorBase = {}, rule = {}, transition = {} } -- definição dos tipos de elemento que podem existir no head
+
 headElem = {}  -- contem as tabelas que referem aos elementos contidos no head do NCL	
 body = {} -- contem as tabelas que referem aos elementos contidos no body do NCL. media, port..
 links = {} --  contem as tabelas apenas dos links
@@ -206,11 +209,19 @@ function Lua2NCL:Translate()
 	fulltext = fulltext .."</ncl>"
 	io.write(fulltext)
 	io.close(f)
+
+	--os.execute('start "Lua2NCL" ')
+	--os.execute("cls")
+
 	print("**** DONE!! ****\n\n")
 	print("Generated NCL file is:", name..".ncl\n\n")
+	print("\n---------------------------------------------------------------------------------\n")
 	
 	print("Analysing NCL file with NCL Validator\n")
 	os.execute("java -jar ncl-validator-1.4.20.jar -nl pt_BR "..name..".ncl")
+	print("\n---------------------------------------------------------------------------------\n")
+
+	os.execute("gingagui " .. name .. ".ncl")
 	print("Lua2NCL v.1.0\n")
 end
 

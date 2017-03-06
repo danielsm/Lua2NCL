@@ -1,5 +1,5 @@
 -- Definicao do link // LINK CLASS 
-local link = {when = {}, ["do"]= {}}
+local link = {condition = {}, action = {}}
 
 function link:new(o)
 	o = o or {}
@@ -15,7 +15,7 @@ end
 -- 	local sentence = {
 -- 		'full';
 -- 		full = lpeg.V'begin' * lpeg.V'object' * (lpeg.V'complement'^0) *lpeg.P'do' * lpeg.V'space' * lpeg.V'reaction' * lpeg.P'end',
--- 		begin = lpeg.P'when' * lpeg.V'space',
+-- 		begin = lpeg.P'condition' * lpeg.V'space',
 -- 		object = lpeg.V'name' * lpeg.P'.' * lpeg.V'action' * lpeg.V'space',
 -- 		action = lpeg.R'az'^1,
 -- 		complement = lpeg.P'with' * lpeg.V'space' * lpeg.V'key' * lpeg.V'space',
@@ -38,8 +38,8 @@ function link:getType()
 end
 
 function link:print()
---[[	A tabela link eh dividida eh duas subtabelas, condition (indice "when") e action (indice "do".
-		A subtabela de condicao (when) contem subtabelas 
+--[[	A tabela link eh dividida eh duas subtabelas, condition (indice "condition") e action (indice "do".
+		A subtabela de condicao (condition) contem subtabelas 
 		
 
 		condition = {	[1]= condition do link, a acao que deve acontecer para disparar as actions
@@ -59,16 +59,16 @@ function link:print()
 	--string que sera impressa no file
 	local tag = "<link xconnector=\""
 
-	-- itera sobre a tabela link que deve conter os elementos "when"-condition e "do"-action	
-	-- i iterara sobre os indices dos elementos(when e do) e v1 recebera seus valores
+	-- itera sobre a tabela link que deve conter os elementos "condition"-condition e "do"-action	
+	-- i iterara sobre os indices dos elementos(condition e do) e v1 recebera seus valores
 	for i,v1 in pairs(self) do
 
-		-- a iteracao agora eh sobre os valores de "when" e "do" que também sao tabelas
+		-- a iteracao agora eh sobre os valores de "condition" e "do" que também sao tabelas
 		-- j contem o role(evento) e v2 contem as medias(componentes) que sofrera o evento j
 		for j,v2 in pairs(v1) do
 			
 			-- verificando qual a condicao para o disparo do link
-			if (i == "when") then
+			if (i == "condition") then
 				-- primeiro elemento formara o alias do link
 				condition[1] = j
 				
@@ -87,7 +87,7 @@ function link:print()
 				end
 
 			-- verificando as acoes que serao disparadas pelo link
-			elseif (i== "do") then
+			elseif (i== "action") then
 				-- iteracao no ultimo nivel das tabelas. 
 				-- atribuiçao dos roles e respectivos componentes do action disparado pelo link
 				for k,v3 in pairs(v2) do

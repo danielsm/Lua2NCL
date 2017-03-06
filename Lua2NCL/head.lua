@@ -1,11 +1,6 @@
 
 -- definicao do elemento head // HEAD CLASS
-local head = {	region = {},
-			descriptor = {},
-			connectorBase = {},
-			rule = {},
-			transition = {}
-		}	
+	
 
 function head:new(o)
 	o = o or {}

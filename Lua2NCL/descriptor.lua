@@ -70,7 +70,7 @@ function descriptor:analyse()
 		end
 
 		-- verifica se o region apontado existe
-		auxFlag = false
+		--[[auxFlag = false
 		if (self.region ~= "") then
 			for k,elem in pairs(headElem) do
 				if (elem:getType() == "region") then
@@ -84,7 +84,7 @@ function descriptor:analyse()
 				print("Erro na definição do elemento descriptor: o region referenciado não está definido")
 				return false
 			end
-		end
+		end]]
 
 		table.insert(headElem, self)
 		--print("descriptor....OK")
